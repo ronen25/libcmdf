@@ -8,10 +8,6 @@ A simple library for writing command-line applications, inspired by Python's [cm
 
 ----------------------------------------------
 
-General
--------------------
-Command-line applications sometimes require 
-
 Features
 --------
 1. Written using 100% ANSI C
