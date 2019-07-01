@@ -14,6 +14,7 @@ Features
 2. Header only: no linkage! No separate compilation!
 3. Cross-platform
 4. GNU Readline support
+5. Can be used from C++ (without `-fpermissive`)
 
 Requirements
 ------------
