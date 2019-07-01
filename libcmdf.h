@@ -1,7 +1,7 @@
 /*
  * libcmdf.h - A library for writing command-line applications
  * Public domain; no warrenty applied, use at your own risk!
- * Authored by Ronen Lapushner, 2017.
+ * Authored by Ronen Lapushner, 2017-2019.
  *
  * License:
  * --------
@@ -93,6 +93,11 @@
 #define CMDF_ERROR_OUT_OF_MEMORY        -5    
 
 /* =================================================================================== */
+
+/* For the C++ support */
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* cmdf_windowsize struct */
 struct cmdf_windowsize {
@@ -216,7 +221,7 @@ static struct cmdf__entry_s {
 
 /* Utility Functions */
 char *cmdf__strdup(const char *src) {
-    char *dst = CMDF_MALLOC(sizeof(char) * (strlen(src) + 1)); /* src + '\0' */
+    char *dst = (char *)(CMDF_MALLOC(sizeof(char) * (strlen(src) + 1))); /* src + '\0' */
     if (!dst)
         return NULL;
 
@@ -299,7 +304,7 @@ void cmdf__pprint(size_t loffset, const char * const strtoprint) {
     while (wordptr) {
         /* Check if we can print this word. */
         wordlen = strlen(wordptr);
-        if (total_printed + (wordlen + 1) > winsize.w - CMDF_PPRINT_RIGHT_OFFSET) {
+        if (total_printed + (wordlen + 1) > (size_t)(winsize.w - CMDF_PPRINT_RIGHT_OFFSET)) {
             /* Go to the next line and print the word there. */
             /* Print newline and loffset spaces */
             fputc('\n', CMDF_STDOUT);
@@ -458,7 +463,7 @@ cmdf_arglist *cmdf_parse_arguments(char *argline) {
         return NULL;
 
     /* Allocate argument list */
-    arglist = CMDF_MALLOC(sizeof(cmdf_arglist));
+    arglist = (cmdf_arglist *)(CMDF_MALLOC(sizeof(cmdf_arglist)));
     if (!arglist)
         return NULL;
 
@@ -522,7 +527,7 @@ cmdf_arglist *cmdf_parse_arguments(char *argline) {
         arglist->count++;
 
     /* Now we can allocate the argument list */
-    arglist->args = CMDF_MALLOC(sizeof(char *) * (arglist->count + 1)); /* + NULL */
+    arglist->args = (char **)(CMDF_MALLOC(sizeof(char *) * (arglist->count + 1))); /* + NULL */
     if (!arglist->args) {
         CMDF_FREE(arglist);
         return NULL;
@@ -832,6 +837,11 @@ char *cmdf__command_name_iter(const char *text, int state) {
     return name;
 }
 
+#endif
+
+/* For the C++ support. */
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* LIBCMDF_IMPL */
