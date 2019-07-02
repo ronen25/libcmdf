@@ -19,7 +19,7 @@ Features
 Requirements
 ------------
 1. **Any ANSI C/ISO C90-compliant compiler**
-<br />*Tested on GCC 5.4/6.3/7.1, clang 4.0 and MSVC 14.0*
+<br />*Tested on GCC 5.4+, clang 4.0+ and MSVC 14.0*
 2. **Linux/Windows**
 <br />*Tested on Ubuntu 16.04 - 18.04, Fedora 26 - 30, and Windows 10 (all AMD64)*
 3. **GNU Readline development libraries (optional)**
@@ -138,6 +138,9 @@ At the moment, the initialization routines don't allocate any memory, or perform
 initialization tricks that require deinitalization.
 
 This might change in the future, though, so make sure to call <code>cmdf_quit</code> when you're done with it!
+
+### Any plans to support Linenoise/anything else?
+Yes! I'm planning to add support for it in the near future.
 
 -------------------------------------------------------------------------------------------------------
 
