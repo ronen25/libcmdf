@@ -142,6 +142,12 @@ This might change in the future, though, so make sure to call <code>cmdf_quit</c
 ### Any plans to support Linenoise/anything else?
 Yes! I'm planning to add support for it in the near future.
 
+### Any plans to implement a proper C++ API?
+Yes! Near future, hopefully!
+
+### What's with the weird commit history?
+I'm used to doing git with the command line, not with VSCode... sorry about that :-(
+
 -------------------------------------------------------------------------------------------------------
 
 License
