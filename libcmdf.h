@@ -262,7 +262,7 @@ void cmdf__trim(char *src) {
         *newline = '\0';
 
     /* Replace spaces and re-align the string */
-    while (isspace(*begin))
+    while (isspace((int)*begin))
         begin++;
 
     if (src != begin) {
@@ -281,11 +281,11 @@ void cmdf__trim(char *src) {
     else
         end--;
 
-    if (isspace(*end)) {
+    if (isspace((int)*end)) {
         do {
             *end = '\0';
             end--;
-        } while (isspace(*end));
+        } while (isspace((int)*end));
     }
 }
 
@@ -511,7 +511,7 @@ cmdf_arglist *cmdf_parse_arguments(char *argline) {
                  * Quotes = a quoted argument begins.
                  * Anything else = Inside a word. 
                  */
-                if (isspace(*strptr))
+                if (isspace((int)*strptr))
                     continue;
                 else if (*strptr == '\"')
                     state = IN_QUOTES;
@@ -525,7 +525,7 @@ cmdf_arglist *cmdf_parse_arguments(char *argline) {
                  * Quotes = Quotes have ended, so count++
                  * Anything else = Don't care, since we're inside quotes.
                  */
-                if (isspace(*strptr))
+                if (isspace((int)*strptr))
                     continue;
                 else if (*strptr == '\"') {
                     state = NONE;
@@ -541,7 +541,7 @@ cmdf_arglist *cmdf_parse_arguments(char *argline) {
                  * Quotes = Ignore - quote is part of the word
                  * Anything else = Still in word
                  */
-                if (isspace(*strptr)) {
+                if (isspace((int)*strptr)) {
                     state = NONE;
                     arglist->count++;
 
@@ -573,7 +573,7 @@ cmdf_arglist *cmdf_parse_arguments(char *argline) {
                 /* Space = No word yet.
                  * Quotes = Quotes started, so ignore everything inbetween.
                  * Else = Probably a word. */
-                if (isspace(*strptr))
+                if (isspace((int)*strptr))
                     continue;
                 else if (*strptr == '\"') {
                     state = IN_QUOTES;
@@ -600,7 +600,7 @@ cmdf_arglist *cmdf_parse_arguments(char *argline) {
                 /* Space = End of word, so parse it.
                  * Quote = Some quote inside of a word. We treat it is a word.
                  * Else = Still a word. */
-                if (isspace(*strptr)) {
+                if (isspace((int)*strptr)) {
                     *strptr = '\0';
                     arglist->args[i++] = cmdf__strdup(startptr);
                     state = NONE;
