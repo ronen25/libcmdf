@@ -35,6 +35,11 @@
     #define CMDF_TAB_TO_SPACES 8
 #endif
 
+/* Max sub process count */
+#ifndef CMDF_MAX_SUBPROCESSES
+    #define CMDF_MAX_SUBPROCESSES 4
+#endif
+
 #ifdef _WIN32
     #define CMDF_PPRINT_RIGHT_OFFSET 2
 #else
@@ -91,6 +96,9 @@
 #define CMDF_ERROR_UNKNOWN_COMMAND      -3
 #define CMDF_ERROR_ARGUMENT_ERROR       -4
 #define CMDF_ERROR_OUT_OF_MEMORY        -5    
+
+/* Max processes count reached */
+#define CMDF_ERROR_OUT_OF_PROCESS_STACK -6
 
 /* =================================================================================== */
 
@@ -197,7 +205,7 @@ static const char *cmdf__default_undoc_header = "Undocumented Commands:";
 static const char cmdf__default_ruler = '=';
 
 /* libcmdf settings */
-static struct cmdf__settings_s {
+struct cmdf__settings_s {
     /* Properties */
     const char *prompt, *intro, *doc_header, *undoc_header;
     char ruler;
@@ -205,19 +213,29 @@ static struct cmdf__settings_s {
     /* Counters */
     int undoc_cmds, doc_cmds, entry_count;
 
+    /* Index in cmdf__entries array from which commands would be active */
+    int entry_start;
+
     /* Flags */
     int exit_flag;
 
     /* Callback pointers */
     cmdf_command_callback do_emptyline;
     CMDF_RETURN (* do_command)(const char *, cmdf_arglist *);
-} cmdf__settings;
+};
+
+/* libcmdf settings stack */
+static struct cmdf__settings_stack_s {
+    struct cmdf__settings_s stack[CMDF_MAX_SUBPROCESSES];
+    size_t size;
+    struct cmdf__settings_s *top; /* actual settings for currect process */
+} cmdf__settings_stack = { 0 };
 
 static struct cmdf__entry_s {
     const char *cmdname;                        /* Command name */
     const char *help;                           /* Help */
     cmdf_command_callback callback;             /* Command callback */
-} cmdf__entries[CMDF_MAX_COMMANDS + 1];
+} cmdf__entries[(CMDF_MAX_COMMANDS + 1) * CMDF_MAX_SUBPROCESSES];
 
 /* Utility Functions */
 char *cmdf__strdup(const char *src) {
@@ -334,8 +352,8 @@ void cmdf__print_command_list(void) {
     const struct cmdf_windowsize winsize = cmdf_get_window_size();
 
     /* Print documented commands */
-    cmdf__print_title(cmdf__settings.doc_header, cmdf__settings.ruler);
-    for (i = 0, printed = 0; i < cmdf__settings.entry_count; i++) {
+    cmdf__print_title(cmdf__settings_stack.top->doc_header, cmdf__settings_stack.top->ruler);
+    for (i = cmdf__settings_stack.top->entry_start, printed = 0; i < cmdf__settings_stack.top->entry_start + cmdf__settings_stack.top->entry_count; i++) {
         if (cmdf__entries[i].help) {
             /* Check if we need to break into the next line. */
             if (printed + strlen(cmdf__entries[i].cmdname) + 1 >= winsize.w) {
@@ -352,9 +370,9 @@ void cmdf__print_command_list(void) {
     fputc('\n', CMDF_STDOUT);
 
     /* Print undocumented commands, if any */
-    if (cmdf__settings.undoc_cmds > 0) {
-        cmdf__print_title(cmdf__settings.undoc_header, cmdf__settings.ruler);
-        for (i = 0, printed = 0; i < cmdf__settings.entry_count; i++) {
+    if (cmdf__settings_stack.top->undoc_cmds > 0) {
+        cmdf__print_title(cmdf__settings_stack.top->undoc_header, cmdf__settings_stack.top->ruler);
+        for (i = cmdf__settings_stack.top->entry_start, printed = 0; i < cmdf__settings_stack.top->entry_start + cmdf__settings_stack.top->entry_count; i++) {
             if (!cmdf__entries[i].help) {
                 /* Check if we need to break into the next line. */
                 if (printed + strlen(cmdf__entries[i].cmdname) + 1 >= winsize.w) {
@@ -375,18 +393,34 @@ void cmdf__print_command_list(void) {
 /* Init/Free functions */
 void cmdf_init(const char *prompt, const char *intro, const char *doc_header,
                const char *undoc_header, char ruler, int use_default_exit) {
+    /* Create new settings to push them to stack */
+    struct cmdf__settings_s settings;
+    memset((void *)&settings, 0, sizeof(struct cmdf__settings_s));
     /* Set properties */
-    cmdf__settings.prompt = prompt ? prompt : cmdf__default_prompt;
-    cmdf__settings.intro = intro ? intro : cmdf__default_intro;
-    cmdf__settings.doc_header = doc_header ? doc_header : cmdf__default_doc_header;
-    cmdf__settings.undoc_header = 
-        undoc_header ? undoc_header : cmdf__default_undoc_header;
-    cmdf__settings.ruler = ruler ? ruler : cmdf__default_ruler;
-    cmdf__settings.doc_cmds = cmdf__settings.undoc_cmds = cmdf__settings.entry_count = 0;
+    settings.prompt = prompt ? prompt : cmdf__default_prompt;
+    settings.intro = intro ? intro : cmdf__default_intro;
+    settings.doc_header = doc_header ? doc_header : cmdf__default_doc_header;
+    settings.undoc_header = undoc_header ? undoc_header : cmdf__default_undoc_header;
+    settings.ruler = ruler ? ruler : cmdf__default_ruler;
+    settings.doc_cmds = settings.undoc_cmds = settings.entry_count = 0;
+
+    /* If not first - look for actual entry_start index */
+    if (cmdf__settings_stack.top != NULL)
+        settings.entry_start = cmdf__settings_stack.top->entry_start + cmdf__settings_stack.top->entry_count;
 
     /* Set command callbacks */
-    cmdf__settings.do_command = cmdf__default_do_command;
-    cmdf__settings.do_emptyline = cmdf__default_do_emptyline;
+    settings.do_command = cmdf__default_do_command;
+    settings.do_emptyline = cmdf__default_do_emptyline;
+
+    /* Push value to the stack */
+    if (cmdf__settings_stack.size < CMDF_MAX_SUBPROCESSES) {
+        cmdf__settings_stack.stack[cmdf__settings_stack.size] = settings;
+        cmdf__settings_stack.top = cmdf__settings_stack.stack + cmdf__settings_stack.size;
+        cmdf__settings_stack.size++;
+    } else {
+        printf("max subprocesses count reached!\n");
+        exit(CMDF_ERROR_OUT_OF_PROCESS_STACK); /* maybe handle error somehow */
+    }
 
     /* Register help callback */
     cmdf_register_command(cmdf__default_do_help, "help", "Get information on a command" \
@@ -409,46 +443,44 @@ void cmdf_commandloop(void) {
 
 /* Getters */
 const char *cmdf_get_prompt(void) {
-    return cmdf__settings.prompt;
+    return cmdf__settings_stack.top->prompt;
 }
 
 const char *cmdf_get_intro(void) {
-    return cmdf__settings.intro;
+    return cmdf__settings_stack.top->intro;
 }
 
 const char *cmdf_get_doc_header(void) {
-    return cmdf__settings.doc_header;
+    return cmdf__settings_stack.top->doc_header;
 }
 
 const char *cmdf_get_undoc_header(void) {
-    return cmdf__settings.undoc_header;
+    return cmdf__settings_stack.top->undoc_header;
 }
 
 char cmdf_get_ruler(void) {
-    return cmdf__settings.ruler;
+    return cmdf__settings_stack.top->ruler;
 }
 
 int cmdf_get_command_count(void) {
-    return cmdf__settings.entry_count;
+    return cmdf__settings_stack.top->entry_count;
 }
 
 /* Setters */
 void cmdf_set_prompt(const char *new_prompt) {
-    cmdf__settings.prompt = new_prompt ? new_prompt : cmdf__default_prompt;
+    cmdf__settings_stack.top->prompt = new_prompt ? new_prompt : cmdf__default_prompt;
 }
 
 void cmdf_set_intro(const char *new_intro) {
-    cmdf__settings.intro = new_intro ? new_intro : cmdf__default_intro;
+    cmdf__settings_stack.top->intro = new_intro ? new_intro : cmdf__default_intro;
 }
 
 void cmdf_set_doc_header(const char *new_doc_header) {
-    cmdf__settings.doc_header = new_doc_header ? 
-                                new_doc_header : cmdf__default_doc_header;
+    cmdf__settings_stack.top->doc_header = new_doc_header ? new_doc_header : cmdf__default_doc_header;
 }
 
 void cmdf_set_undoc_header(const char *new_undoc_header) {
-    cmdf__settings.undoc_header = 
-        new_undoc_header ? new_undoc_header : cmdf__default_undoc_header;
+    cmdf__settings_stack.top->undoc_header = new_undoc_header ? new_undoc_header : cmdf__default_undoc_header;
 }
 
 /* Argument Parsing */
@@ -609,22 +641,25 @@ void cmdf_free_arglist(cmdf_arglist *arglist) {
 /* Adding/Removing Command Entries */
 CMDF_RETURN cmdf_register_command(cmdf_command_callback callback, const char *cmdname, 
                           const char *help) {
+    int new_index;
+
     /* Increate entry count, first checking if we can add more */
-    if (cmdf__settings.entry_count == CMDF_MAX_COMMANDS)
+    if (cmdf__settings_stack.top->entry_count == CMDF_MAX_COMMANDS)
         return CMDF_ERROR_TOO_MANY_COMMANDS;
 
     /* Initialize new entry */
-    cmdf__entries[cmdf__settings.entry_count].callback = callback;
-    cmdf__entries[cmdf__settings.entry_count].cmdname = cmdname;
-    cmdf__entries[cmdf__settings.entry_count].help = help;
+    new_index = cmdf__settings_stack.top->entry_start + cmdf__settings_stack.top->entry_count;
+    cmdf__entries[new_index].callback = callback;
+    cmdf__entries[new_index].cmdname = cmdname;
+    cmdf__entries[new_index].help = help;
 
-    cmdf__settings.entry_count++;
+    cmdf__settings_stack.top->entry_count++;
 
     /* Check doc */
     if (help)
-        cmdf__settings.doc_cmds++;
+        cmdf__settings_stack.top->doc_cmds++;
     else
-        cmdf__settings.undoc_cmds++;
+        cmdf__settings_stack.top->undoc_cmds++;
 
     return CMDF_OK;
 }
@@ -638,7 +673,7 @@ CMDF_RETURN cmdf__default_do_help(cmdf_arglist *arglist) {
      * Otherwise, print documentation on specified command. */
     if (arglist) {
         if (arglist->count == 1) {
-            for (i = 0; i < cmdf__settings.entry_count; i++) {
+            for (i = cmdf__settings_stack.top->entry_start; i < cmdf__settings_stack.top->entry_start + cmdf__settings_stack.top->entry_count; i++) {
                 if (strcmp(arglist->args[0], cmdf__entries[i].cmdname) == 0) {
 		            /* Print help, if any */
 		            if (cmdf__entries[i].help) {
@@ -675,7 +710,7 @@ CMDF_RETURN cmdf__default_do_emptyline(cmdf_arglist *arglist /* Unusued */) {
 }
 
 CMDF_RETURN cmdf__default_do_exit(cmdf_arglist *arglist /* Unused */) {
-    cmdf__settings.exit_flag = 1;
+    cmdf__settings_stack.top->exit_flag = 1;
 
     return CMDF_OK;
 }
@@ -688,7 +723,7 @@ CMDF_RETURN cmdf__default_do_command(const char *cmdname, cmdf_arglist *arglist)
     int i;
 
     /* Iterate through the commands list. Find and execute the appropriate command */
-    for (i = 0; i < cmdf__settings.entry_count; i++)
+    for (i = cmdf__settings_stack.top->entry_start; i < cmdf__settings_stack.top->entry_start + cmdf__settings_stack.top->entry_count; i++)
         if (strcmp(cmdname, cmdf__entries[i].cmdname) == 0)
             return cmdf__entries[i].callback(arglist);
 
@@ -707,16 +742,16 @@ void cmdf__default_commandloop(void) {
     int retflag;
 
     /* Print intro, if any. */
-    if (cmdf__settings.intro)
-        printf("\n%s\n\n", cmdf__settings.intro);
+    if (cmdf__settings_stack.top->intro)
+        printf("\n%s\n\n", cmdf__settings_stack.top->intro);
 
-    while (!cmdf__settings.exit_flag) {
+    while (!cmdf__settings_stack.top->exit_flag) {
         /* Print prompt and get input */
         #ifndef CMDF_READLINE_SUPPORT
-            fprintf(CMDF_STDOUT, "%s", cmdf__settings.prompt);
+            fprintf(CMDF_STDOUT, "%s", cmdf__settings_stack.top->prompt);
             fgets(inputbuff, sizeof(char) * CMDF_MAX_INPUT_BUFFER_LENGTH, CMDF_STDIN);
         #else
-            inputbuff = readline(cmdf__settings.prompt);
+            inputbuff = readline(cmdf__settings_stack.top->prompt);
 
             /* If the buffer wasn't allocated = out of memory, so exit with failure*/
             if (!inputbuff)
@@ -728,7 +763,7 @@ void cmdf__default_commandloop(void) {
 
         /* If input is empty, call do_emptyline command. */
         if (inputbuff[0] == '\0') {
-            cmdf__settings.do_emptyline(NULL);
+            cmdf__settings_stack.top->do_emptyline(NULL);
             continue;
         }
 
@@ -755,7 +790,7 @@ void cmdf__default_commandloop(void) {
         cmd_args = cmdf_parse_arguments(argsptr);
 
         /* Execute command. */
-        retflag = cmdf__settings.do_command(cmdptr, cmd_args);
+        retflag = cmdf__settings_stack.top->do_command(cmdptr, cmd_args);
         switch (retflag) {
             case CMDF_ERROR_UNKNOWN_COMMAND:
                 fprintf(CMDF_STDOUT, "Unknown command '%s'.\n", cmdptr);
@@ -770,6 +805,10 @@ void cmdf__default_commandloop(void) {
             free(inputbuff);
         #endif
     }
+
+    /* Pop out settings from settings stack */
+    cmdf__settings_stack.size--;
+    cmdf__settings_stack.top--;
 }
 
 /* Utility Functions */
@@ -825,12 +864,12 @@ char *cmdf__command_name_iter(const char *text, int state) {
     char *name = NULL;
 
     if (!state) {
-        list_index = 0;
+        list_index = cmdf__settings_stack.top->entry_start;
         len = strlen(text);
     }
 
     /* Compare all entries */
-    for (; list_index < cmdf__settings.entry_count; list_index++)
+    for (; list_index < cmdf__settings_stack.top->entry_start + cmdf__settings_stack.top->entry_count; list_index++)
         if (strncmp(cmdf__entries[list_index].cmdname, text, len) == 0)
             name = cmdf__strdup(cmdf__entries[list_index].cmdname);
 
