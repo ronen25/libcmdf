@@ -1,7 +1,9 @@
 /*
  * libcmdf.h - A library for writing command-line applications
  * Public domain; no warrenty applied, use at your own risk!
- * Authored by Ronen Lapushner, 2017-2019.
+ * Authored by:
+ *   Ronen Lapushner, 2017-2020.
+ *   Rull Deef, 2020.
  *
  * License:
  * --------
