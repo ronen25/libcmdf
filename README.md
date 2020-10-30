@@ -21,7 +21,7 @@ Requirements
 1. **Any ANSI C/ISO C90-compliant compiler**
 <br />*Tested on GCC 5.4+, clang 4.0+ and MSVC 14.0*
 2. **Linux/Windows**
-<br />*Tested on Ubuntu 16.04 - 18.04, Fedora 26 - 30, and Windows 10 (all AMD64)*
+<br />*Tested on Ubuntu 16.04 - 20.04, Fedora 26 - 30, and Windows 10 (all AMD64)*
 3. **GNU Readline development libraries (optional)**
 <br />*Required for GNU Readline support, if enabled.*
 
