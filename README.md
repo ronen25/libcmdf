@@ -4,7 +4,7 @@ A simple library for writing command-line applications, inspired by Python's [cm
 
 ----------------------------------------------
 
-***Latest version: v.1.2 (2020-30-10)***
+***Latest version: v.1.3 (2020-27-11)***
 
 ----------------------------------------------
 
