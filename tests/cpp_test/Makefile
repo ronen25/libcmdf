@@ -1,11 +1,8 @@
-CXXFLAGS=-Wall -Werror -ggdb -O0
+CXXFLAGS=-Wall -Werror -ggdb -O0 -I"../.."
 LDLIBS=-lreadline
 
 ALL: compile_cpp_test
 
-link_to_lib:
-	ln -s ../../libcmdf.h ./libcmdf.h
-
 cpp_test: cpp_test.cpp
 
-compile_cpp_test: link_to_lib cpp_test
+compile_cpp_test: cpp_test
