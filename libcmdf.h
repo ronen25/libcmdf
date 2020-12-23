@@ -752,12 +752,20 @@ void cmdf__default_commandloop(void) {
         #ifndef CMDF_READLINE_SUPPORT
             fprintf(CMDF_STDOUT, "%s", cmdf__settings_stack.top->prompt);
             fgets(inputbuff, sizeof(char) * CMDF_MAX_INPUT_BUFFER_LENGTH, CMDF_STDIN);
+
+            /* Check for EOF */
+            if (feof(CMDF_STDIN)) {
+                cmdf__settings_stack.top->exit_flag = 1;
+                continue;
+            }
         #else
             inputbuff = readline(cmdf__settings_stack.top->prompt);
 
-            /* If the buffer wasn't allocated = out of memory, so exit with failure*/
-            if (!inputbuff)
-                exit(CMDF_ERROR_OUT_OF_MEMORY);
+            /* EOF, or failure to allocate a buffer. Means we probably need to exit. */
+            if (!inputbuff) {
+                cmdf__settings_stack.top->exit_flag = 1;
+                continue;
+            }
         #endif
 
         /* Trim string */
