@@ -4,7 +4,7 @@ A simple library for writing command-line applications, inspired by Python's [cm
 
 ----------------------------------------------
 
-***Latest version: v.1.3 (2020-27-11)***
+***Latest version: v.1.3.1 (2022-11-18)***
 
 ----------------------------------------------
 
@@ -144,9 +144,6 @@ Yes! I'm planning to add support for it in the near future.
 
 ### Any plans to implement a proper C++ API?
 Yes! Near future, hopefully!
-
-### What's with the weird commit history?
-I'm used to doing git with the command line, not with VSCode... sorry about that :-(
 
 -------------------------------------------------------------------------------------------------------
 
