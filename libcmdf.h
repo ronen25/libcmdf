@@ -104,7 +104,6 @@
 
 /* =================================================================================== */
 
-/* For the C++ support */
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -342,10 +341,8 @@ void cmdf__pprint(size_t loffset, const char * const strtoprint) {
         wordptr = strtok(NULL, " \t\n");
     }
 
-    /* Put newline */
     fputc('\n', CMDF_STDOUT);
 
-    /* Free the string */
     CMDF_FREE(strbuff);
 }
 
@@ -368,7 +365,6 @@ void cmdf__print_command_list(void) {
         }
     }
 
-    /* Newline */
     fputc('\n', CMDF_STDOUT);
 
     /* Print undocumented commands, if any */
@@ -387,7 +383,6 @@ void cmdf__print_command_list(void) {
             }
         }
 
-        /* Print newline */
         fputc('\n', CMDF_STDOUT);
     }
 }
@@ -619,7 +614,6 @@ cmdf_arglist *cmdf_parse_arguments(char *argline) {
     /* Set up null terminator in the argument list */
     arglist->args[i] = NULL;
 
-    /* Done. */
     return arglist;
 }
 
@@ -632,11 +626,9 @@ void cmdf_free_arglist(cmdf_arglist *arglist) {
         for (i = 0; i < arglist->count - 1; i++)
             CMDF_FREE(arglist->args[i]);
 
-        /* Free args */
         CMDF_FREE(arglist->args);
     }
 
-    /* Free arglist */
     CMDF_FREE(arglist);
 }
 
@@ -701,7 +693,6 @@ CMDF_RETURN cmdf__default_do_help(cmdf_arglist *arglist) {
     else
         cmdf__print_command_list();
 
-    /* Print newline */
     fputc('\n', CMDF_STDOUT);
 
     return CMDF_OK;
