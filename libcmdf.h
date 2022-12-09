@@ -2,7 +2,7 @@
  * libcmdf.h - A library for writing command-line applications
  * Public domain; no warrenty applied, use at your own risk!
  * Authored by:
- *   Ronen Lapushner, 2017-2020.
+ *   Ronen Lapushner, 2017-2022.
  *   Rull Deef, 2020.
  *
  * License:
@@ -230,7 +230,12 @@ static struct cmdf__settings_stack_s {
     struct cmdf__settings_s stack[CMDF_MAX_SUBPROCESSES];
     size_t size;
     struct cmdf__settings_s *top; /* actual settings for currect process */
-} cmdf__settings_stack = { 0 };
+} cmdf__settings_stack =
+#ifdef __cplusplus /* Required to avoid -Wmissing-braces on Apple clang and possibly others */
+    {{}};
+#else
+    { 0 };
+#endif
 
 static struct cmdf__entry_s {
     const char *cmdname;                        /* Command name */
@@ -393,6 +398,7 @@ void cmdf_init(const char *prompt, const char *intro, const char *doc_header,
     /* Create new settings to push them to stack */
     struct cmdf__settings_s settings;
     memset((void *)&settings, 0, sizeof(struct cmdf__settings_s));
+
     /* Set properties */
     settings.prompt = prompt ? prompt : cmdf__default_prompt;
     settings.intro = intro ? intro : cmdf__default_intro;
@@ -845,7 +851,7 @@ void cmdf__default_commandloop(void) {
         return cm_winsize;
     }
 
-#endif
+#endif /* Utility functions */
 
 /* readline-related utilities */
 #ifdef CMDF_READLINE_SUPPORT
@@ -864,14 +870,12 @@ char *cmdf__command_name_iter(const char *text, int state) {
     static size_t len;
     const char *name = NULL;
 
-    if (!state)
-    {
+    if (!state) {
         list_index = cmdf__settings_stack.top->entry_start;
         len = strlen(text);
     }
 
-    while (name = cmdf__entries[list_index].cmdname)
-    {
+    while (name = cmdf__entries[list_index].cmdname) {
         list_index++;
 
         if (strncmp (name, text, len) == 0)
@@ -881,7 +885,7 @@ char *cmdf__command_name_iter(const char *text, int state) {
     return ((char*) NULL);
 }
 
-#endif
+#endif /* CMDF_READLINE_SUPPORT */
 
 #endif /* LIBCMDF_IMPL */
 
