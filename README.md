@@ -20,7 +20,7 @@ Requirements
 ------------
 1. **Any ANSI C/ISO C90-compliant compiler**
 <br />*Tested on GCC 5.4+, clang 4.0+, Apple Clang 14, and MSVC 14.0*
-2. **Linux/Windows**
+2. **Linux/Windows/Mac**
 <br />*Tested on Ubuntu 16.04 - 20.04, Fedora 26 - 30, Windows 10 (all AMD64) and Mac (M1)*
 3. **GNU Readline development libraries (optional)**
 <br />*Required for GNU Readline support, if enabled.*
