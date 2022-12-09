@@ -139,11 +139,12 @@ initialization tricks that require deinitalization.
 
 This might change in the future, though, so make sure to call <code>cmdf_quit</code> when you're done with it!
 
-### Any plans to support Linenoise/anything else?
-Yes! I'm planning to add support for it in the near future.
+### Any plans to implement a proper C++ API, Linenoise/anything else?
+I initially had plans to implement a lot of features.
+However, I'm not working with C/C++ professionally anymore so my interest in these languages
+and the ecosystem has somewhat dwindled.
 
-### Any plans to implement a proper C++ API?
-Yes! Near future, hopefully!
+This does not affect the development status of this library - it will still be maintained and developed.
 
 -------------------------------------------------------------------------------------------------------
 
