@@ -398,6 +398,7 @@ void cmdf_init(const char *prompt, const char *intro, const char *doc_header,
     /* Create new settings to push them to stack */
     struct cmdf__settings_s settings;
     memset((void *)&settings, 0, sizeof(struct cmdf__settings_s));
+
     /* Set properties */
     settings.prompt = prompt ? prompt : cmdf__default_prompt;
     settings.intro = intro ? intro : cmdf__default_intro;
@@ -850,7 +851,7 @@ void cmdf__default_commandloop(void) {
         return cm_winsize;
     }
 
-#endif
+#endif /* Utility functions */
 
 /* readline-related utilities */
 #ifdef CMDF_READLINE_SUPPORT
@@ -884,7 +885,7 @@ char *cmdf__command_name_iter(const char *text, int state) {
     return ((char*) NULL);
 }
 
-#endif
+#endif /* CMDF_READLINE_SUPPORT */
 
 #endif /* LIBCMDF_IMPL */
 

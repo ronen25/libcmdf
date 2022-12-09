@@ -4,7 +4,7 @@ A simple library for writing command-line applications, inspired by Python's [cm
 
 ----------------------------------------------
 
-***Latest version: v.1.3.1 (2022-11-18)***
+***Latest version: v.1.4.0 (2022-12-09)***
 
 ----------------------------------------------
 
@@ -19,9 +19,9 @@ Features
 Requirements
 ------------
 1. **Any ANSI C/ISO C90-compliant compiler**
-<br />*Tested on GCC 5.4+, clang 4.0+ and MSVC 14.0*
+<br />*Tested on GCC 5.4+, clang 4.0+, Apple Clang 14, and MSVC 14.0*
 2. **Linux/Windows**
-<br />*Tested on Ubuntu 16.04 - 20.04, Fedora 26 - 30, and Windows 10 (all AMD64)*
+<br />*Tested on Ubuntu 16.04 - 20.04, Fedora 26 - 30, Windows 10 (all AMD64) and Mac (M1)*
 3. **GNU Readline development libraries (optional)**
 <br />*Required for GNU Readline support, if enabled.*
 
