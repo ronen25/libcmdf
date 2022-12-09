@@ -2,7 +2,7 @@
  * libcmdf.h - A library for writing command-line applications
  * Public domain; no warrenty applied, use at your own risk!
  * Authored by:
- *   Ronen Lapushner, 2017-2020.
+ *   Ronen Lapushner, 2017-2022.
  *   Rull Deef, 2020.
  *
  * License:
@@ -230,7 +230,12 @@ static struct cmdf__settings_stack_s {
     struct cmdf__settings_s stack[CMDF_MAX_SUBPROCESSES];
     size_t size;
     struct cmdf__settings_s *top; /* actual settings for currect process */
-} cmdf__settings_stack = { 0 };
+} cmdf__settings_stack =
+#ifdef __cplusplus /* Required to avoid -Wmissing-braces on Apple clang and possibly others */
+    {{}};
+#else
+    { 0 };
+#endif
 
 static struct cmdf__entry_s {
     const char *cmdname;                        /* Command name */
@@ -864,14 +869,12 @@ char *cmdf__command_name_iter(const char *text, int state) {
     static size_t len;
     const char *name = NULL;
 
-    if (!state)
-    {
+    if (!state) {
         list_index = cmdf__settings_stack.top->entry_start;
         len = strlen(text);
     }
 
-    while (name = cmdf__entries[list_index].cmdname)
-    {
+    while (name = cmdf__entries[list_index].cmdname) {
         list_index++;
 
         if (strncmp (name, text, len) == 0)
