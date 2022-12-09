@@ -853,8 +853,8 @@ void cmdf__default_commandloop(void) {
 char **cmdf__command_name_completion(const char *text, int start, int end) {
     char **matches = NULL;
 
-    rl_attempted_completion_over = 1;
-    matches = rl_completion_matches(text, cmdf__command_name_iter);
+    if (start == 0)
+        matches = rl_completion_matches(text, cmdf__command_name_iter);
 
     return matches;
 }
@@ -862,26 +862,30 @@ char **cmdf__command_name_completion(const char *text, int start, int end) {
 char *cmdf__command_name_iter(const char *text, int state) {
     static int list_index;
     static size_t len;
-    char *name = NULL;
+    const char *name = NULL;
 
-    if (!state) {
+    if (!state)
+    {
         list_index = cmdf__settings_stack.top->entry_start;
         len = strlen(text);
     }
 
-    /* Compare all entries */
-    for (; list_index < cmdf__settings_stack.top->entry_start + cmdf__settings_stack.top->entry_count; list_index++)
-        if (strncmp(cmdf__entries[list_index].cmdname, text, len) == 0)
-            name = cmdf__strdup(cmdf__entries[list_index].cmdname);
+    while (name = cmdf__entries[list_index].cmdname)
+    {
+        list_index++;
 
-    return name;
+        if (strncmp (name, text, len) == 0)
+            return (cmdf__strdup(name));
+    }
+
+    return ((char*) NULL);
 }
 
 #endif
+
+#endif /* LIBCMDF_IMPL */
 
 /* For the C++ support. */
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* LIBCMDF_IMPL */
